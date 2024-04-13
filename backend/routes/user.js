@@ -1,10 +1,10 @@
 const express = require("express");
 const zod = require("zod");
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
-
+const
 const router = express.Router();
 
 const signupBody = zod.object({
@@ -43,7 +43,12 @@ router.post("/signup", async (req, res) => {
     })
 
     const userId = user._id;
-
+    
+    await Account.create({
+        userID: userId,
+        balance: 1 + Math.random() * 10000
+    })
+    
     const token = jwt.sign({
         userId
     }, JWT_SECRET);
@@ -103,28 +108,28 @@ router.put("/", authMiddleware, async (req, res) => {
     })
 })
 
-router.get("/bulk",async(req,res)=>{
+router.get("/bulk", async (req, res) => {
     const filter = req.query.filter || "";
 
     const users = await User.find({
         $or: [{
-            firstName:{
-                "$regex":filter
+            firstName: {
+                "$regex": filter
             }
         },
         {
-            lastName:{
-                "regex":filter
+            lastName: {
+                "regex": filter
             }
         }
-    ]
+        ]
     })
     res.json({
-        user: users.map(user=>({
+        user: users.map(user => ({
             username: user.username,
-            firstName:user.firstName,
-            lastName:user.lastName,
-            _id:user._id
+            firstName: user.firstName,
+            lastName: user.lastName,
+            _id: user._id
         }))
     })
 })
